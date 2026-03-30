@@ -28,7 +28,6 @@
             align-items: start;
         }
 
-        /* עיצוב הלוח המקצועי */
         .board-container {
             flex-shrink: 0;
             background-color: #262522;
@@ -37,11 +36,8 @@
             box-shadow: 0 15px 40px rgba(0,0,0,0.6);
         }
 
-        #myBoard {
-            width: 550px;
-        }
+        #myBoard { width: 550px; }
 
-        /* סימונים מיוחדים על הלוח */
         .highlight-legal {
             box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.4);
             border-radius: 50%;
@@ -53,7 +49,6 @@
             background-color: rgba(255, 0, 0, 0.4) !important;
         }
 
-        /* סרגל כלים מתחת ללוח */
         .board-controls {
             display: flex;
             justify-content: space-between;
@@ -63,24 +58,12 @@
         }
 
         .control-btn {
-            background-color: #3b3936;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
+            background-color: #3b3936; color: white; border: none; padding: 10px 20px;
+            border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s;
         }
         .control-btn:hover { background-color: #4b4845; }
 
-        /* מתג מצב בוט */
-        .bot-toggle-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 600;
-        }
+        .bot-toggle-wrapper { display: flex; align-items: center; gap: 10px; font-weight: 600; }
         
         .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -89,28 +72,15 @@
         input:checked + .slider { background-color: #4CAF50; }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        /* פאנל מידע צדי */
         .info-panel {
-            width: 400px;
-            background-color: #1e2024;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+            width: 400px; background-color: #1e2024; padding: 30px; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 20px;
         }
 
         .title { margin: 0; font-size: 28px; font-weight: 700; color: #fff; text-align: left; direction: ltr; }
         .subtitle { font-size: 14px; color: #888; margin-top: -5px; text-align: left; direction: ltr; margin-bottom: 10px; }
 
-        .panel-box {
-            background-color: #2a2d33;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #4CAF50;
-        }
-
+        .panel-box { background-color: #2a2d33; padding: 15px; border-radius: 8px; border-left: 4px solid #4CAF50; }
         .panel-label { font-size: 13px; color: #a1a1a1; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block; }
         
         #status { font-size: 18px; font-weight: 600; color: #fff; }
@@ -207,9 +177,7 @@
         var $explainBtn = $('#explain-btn');
         var engine = null;
         var currentBestMove = null;
-        var squareClass = 'square-55d63'; // קלאס פנימי של הלוח
 
-        // אתחול המפתח
         $(document).ready(function() {
             if (localStorage.getItem('gemini_api_key')) { $('#api-setup-box').hide(); }
         });
@@ -229,7 +197,6 @@
             $('#api-setup-box').slideDown();
         }
 
-        // אתחול מנוע
         fetch('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.0/stockfish.js')
             .then(response => response.text())
             .then(text => {
@@ -243,7 +210,6 @@
                         $bestMoveDisplay.html(currentBestMove);
                         $explainBtn.show(); 
 
-                        // אם מצב בוט דלוק, ותור שחור - הבוט משחק
                         var isBotMode = $('#bot-mode-toggle').is(':checked');
                         if (isBotMode && game.turn() === 'b' && currentBestMove) {
                             setTimeout(function() {
@@ -252,8 +218,8 @@
                                 updateStatus();
                                 removeHighlights();
                                 highlightCheck();
-                                askEngine(); // המנוע יחשוב עכשיו מה טוב ללבן
-                            }, 400); // השהייה קטנה שירגיש טבעי
+                                askEngine(); 
+                            }, 400);
                         }
                     }
                 };
@@ -269,7 +235,6 @@
             }
         }
 
-        // פונקציות עיצוב לוח (הדגשות)
         function removeHighlights() {
             $('#myBoard .square-55d63').removeClass('highlight-legal');
             $('#myBoard .square-55d63').removeClass('in-check');
@@ -285,7 +250,6 @@
 
         function highlightCheck() {
             if (game.in_check()) {
-                // חיפוש המלך של מי שתורו עכשיו
                 var turn = game.turn();
                 var boardData = game.board();
                 for (var i = 0; i < 8; i++) {
@@ -300,10 +264,8 @@
             }
         }
 
-        // אירועי לוח
         function onDragStart (source, piece) {
             if (game.game_over()) return false;
-            // אם משחקים נגד בוט, אי אפשר להזיז את השחור
             var isBotMode = $('#bot-mode-toggle').is(':checked');
             if (isBotMode && piece.search(/^b/) !== -1) return false;
             
@@ -331,7 +293,7 @@
         function undoMove() {
             var isBotMode = $('#bot-mode-toggle').is(':checked');
             game.undo();
-            if (isBotMode) { game.undo(); } // לוקח שני מהלכים אחורה אם זה נגד בוט
+            if (isBotMode) { game.undo(); } 
             board.position(game.fen());
             updateStatus();
             removeHighlights();
@@ -351,7 +313,6 @@
             $status.html(statusText);
         }
 
-        // חיבור ל-Gemini
         $explainBtn.on('click', function() {
             var apiKey = localStorage.getItem('gemini_api_key');
             if (!apiKey) {
@@ -369,7 +330,8 @@
                              "\nסטוקפיש ממליץ על: " + currentBestMove + ". " +
                              "תסביר לי ב-2-3 משפטים בעברית פשוטה מה הרעיון האסטרטגי מאחורי המהלך.";
 
-            fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey, {
+            // הנה התיקון הגדול - הוספת "-latest" לשם המודל!
+            fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + apiKey, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
@@ -381,7 +343,7 @@
                     var text = data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                     $('#ai-explanation').html(text);
                 } else {
-                    $('#ai-explanation').html('<span style="color:#ff4444;">שגיאת אימות. בדוק שהמפתח עדכני.</span>');
+                    $('#ai-explanation').html('<span style="color:#ff4444;">שגיאת אימות. בדוק שהמפתח החדש הוזן נכון ללא רווחים.</span>');
                 }
             }).catch(e => {
                 $explainBtn.prop('disabled', false).text('הסבר שוב');
@@ -399,7 +361,7 @@
         };
         board = Chessboard('myBoard', config);
         updateStatus();
-        askEngine(); // אתחול מנוע בעמדת הפתיחה
+        askEngine();
     </script>
 </body>
 </html>
