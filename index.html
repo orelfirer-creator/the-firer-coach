@@ -5,26 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>המאמן האישי שלי</title>
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 </head>
 <body style="font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; margin-top: 50px;">
 
     <h2>"המאמן האישי שלי"</h2>
     
     <div id="myBoard" style="width: 400px;"></div>
+    
+    <div style="margin-top: 20px; font-weight: bold;" id="status"></div>
 
     <script>
-        // הגדרות הלוח
+        var board = null;
+        var game = new Chess(); // יצירת משחק שחמט חדש שומר על החוקים
+        var $status = $('#status');
+
+        // פונקציה שבודקת אם מותר להרים כלי
+        function onDragStart (source, piece, position, orientation) {
+            // אם המשחק נגמר - אי אפשר להזיז כלים
+            if (game.game_over()) return false;
+
+            // אפשר להזיז רק כלים של מי שהתור שלו
+            if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+                (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+                return false;
+            }
+        }
+
+        // פונקציה שמופעלת כשאתה עוזב את הכלי
+        function onDrop (source, target) {
+            // שואלים את השופט אם המהלך חוקי
+            var move = game.move({
+                from: source,
+                to: target,
+                promotion: 'q' // בינתיים: תמיד מכתיר למלכה
+            });
+
+            // אם המהלך לא חוקי, הכלי קופץ חזרה
+            if (move === null) return 'snapback';
+
+            updateStatus();
+        }
+
+        // עדכון הלוח הגרפי אחרי מהלכים מיוחדים כמו הצרחה או הכאה דרך הילוכו
+        function onSnapEnd () {
+            board.position(game.fen());
+        }
+
+        // עדכון הטקסט מתחת ללוח
+        function updateStatus () {
+            var statusHTML = '';
+            var moveColor = 'לבן';
+            if (game.turn() === 'b') moveColor = 'שחור';
+
+            if (game.in_checkmate()) statusHTML = 'המשחק נגמר, מט ל' + moveColor + '.';
+            else if (game.in_draw()) statusHTML = 'המשחק נגמר בתיקו.';
+            else {
+                statusHTML = 'תור: ' + moveColor;
+                if (game.in_check()) statusHTML += ', שח!';
+            }
+            $status.html(statusHTML);
+        }
+
+        // הגדרות הלוח (הפעם עם הפונקציות שלנו)
         var config = {
-            position: 'start', // מתחיל ממצב התחלתי של משחק
-            draggable: true,   // מאפשר לגרור את הכלים
-            // הנה הקישור המתוקן:
+            draggable: true,
+            position: 'start',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd,
             pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
         };
         
-        // יצירת הלוח על המסך
-        var board = Chessboard('myBoard', config);
+        board = Chessboard('myBoard', config);
+        updateStatus(); // עדכון סטטוס התחלתי
     </script>
 
 </body>
