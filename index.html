@@ -3,67 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>המאמן האישי שלי</title>
+    <title>המאמן האישי שלי: The Firer Coach</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: row; /* בטלפון זה יהפוך ל-column */
+            gap: 30px;
+            align-items: start;
+        }
+
+        /* עיצוב הלוח */
+        .board-container {
+            flex-shrink: 0;
+        }
+
+        #myBoard {
+            width: 500px; /* גדול יותר ומקצועי */
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* עיצוב הפאנל הצדי */
+        .info-panel {
+            width: 350px;
+            background-color: #1e1e1e;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .title {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            text-align: center;
+            color: #ffffff;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+        }
+
+        .status-container, .engine-container {
+            padding: 15px;
+            background-color: #2d2d2d;
+            border-radius: 5px;
+        }
+
+        .panel-label {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        #status {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        #best-move {
+            font-family: 'Roboto Mono', monospace; /* גופן קוד מקצועי */
+            color: #4CAF50; /* ירוק למהלך הכי טוב */
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #depth-status {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* עיצוב כפתור ההסבר */
+        #explain-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            text-align: center;
+            margin-top: 10px;
+            display: none; /* מופיע רק כשיש המלצה */
+        }
+
+        #explain-btn:hover {
+            background-color: #45a049;
+        }
+
+        #explain-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* התאמה לטלפונים */
+        @media (max-width: 900px) {
+            .main-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            #myBoard {
+                width: 90vw;
+            }
+            .info-panel {
+                width: 90vw;
+                box-sizing: border-box;
+            }
+        }
+    </style>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 </head>
-<body style="font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; margin-top: 50px;">
+<body>
 
-    <h2>"המאמן האישי שלי"</h2>
-    
-    <div id="myBoard" style="width: 400px;"></div>
-    
-    <div style="margin-top: 20px; font-weight: bold; font-size: 18px;" id="status"></div>
-    
-    <div style="margin-top: 15px; padding: 10px; background-color: #f0f0f0; border-radius: 5px; width: 380px; text-align: center; color: #333;" id="engineStatus">
-        טוען את מנוע Stockfish...
+    <div class="main-wrapper">
+        
+        <div class="board-container">
+            <div id="myBoard"></div>
+        </div>
+
+        <div class="info-panel">
+            <h1 class="title">The Firer Coach</h1>
+            
+            <div class="status-container">
+                <span class="panel-label">סטטוס משחק</span>
+                <div id="status">טוען...</div>
+            </div>
+            
+            <div class="engine-container" id="engineStatus">
+                <span class="panel-label">ניתוח המנוע</span>
+                <div id="best-move">אנא עשה מהלך</div>
+                <div id="depth-status">המנוע יחשוב לעומק 16</div>
+            </div>
+
+            <button id="explain-btn">הסבר לי למה (העתק שאלה)</button>
+        </div>
     </div>
 
     <script>
         var board = null;
         var game = new Chess();
         var $status = $('#status');
-        var $engineStatus = $('#engineStatus');
+        var $bestMoveDisplay = $('#best-move');
+        var $depthStatus = $('#depth-status');
+        var $explainBtn = $('#explain-btn');
         var engine = null;
+        var currentBestMove = null; // משתנה גלובלי לשמירת המהלך האחרון
 
-        // טעינת מנוע סטוקפיש בצורה שעוקפת חסימות דפדפן
+        // טעינת מנוע סטוקפיש
         fetch('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.0/stockfish.js')
             .then(function(response) { return response.text(); })
             .then(function(text) {
                 var blob = new Blob([text], {type: 'application/javascript'});
                 engine = new Worker(URL.createObjectURL(blob));
                 
-                // האזנה לתשובות מהמנוע
                 engine.onmessage = function(event) {
                     var line = event.data;
                     
-                    // כשהמנוע מוכן לפעולה
                     if (line === 'readyok') {
-                        $engineStatus.html('המנוע מוכן! עשה מהלך כדי לקבל ניתוח.');
+                        $bestMoveDisplay.html('המנוע מוכן!');
                     }
                     
-                    // כשהמנוע מוצא את המהלך הכי טוב
                     if (line.includes('bestmove')) {
-                        var bestMove = line.split(' ')[1]; // שולף את המהלך מהטקסט
-                        $engineStatus.html('המלצת המנוע (Stockfish): המהלך הטוב ביותר הוא <strong>' + bestMove + '</strong>');
+                        currentBestMove = line.split(' ')[1];
+                        $bestMoveDisplay.html(currentBestMove);
+                        $explainBtn.show(); // מציג את כפתור ההסבר
                     }
                 };
                 
-                engine.postMessage('uci'); // אתחול המנוע
+                engine.postMessage('uci');
                 setTimeout(function() { engine.postMessage('isready'); }, 500);
             });
 
-        // פונקציה שמפעילה את המנוע לחשוב על העמדה הנוכחית
         function askEngine() {
             if (engine) {
-                $engineStatus.html('המנוע חושב...');
+                $explainBtn.hide(); // מחביא את הכפתור בזמן שהמנוע חושב
+                $bestMoveDisplay.html('חושב...');
                 engine.postMessage('position fen ' + game.fen());
-                engine.postMessage('go depth 10'); // עומק חישוב (10 זה מהיר וטוב לדפדפן)
+                // מעלה את עומק החישוב ל-16
+                engine.postMessage('go depth 16');
             }
         }
+
+        // פונקציית כפתור ההסבר
+        $explainBtn.on('click', function() {
+            if (!currentBestMove) return;
+
+            var currentFEN = game.fen();
+            var promptText = "אני שחקן שחמט ברמה של 1440. המצב בלוח הוא בדיוק:\n" + 
+                             currentFEN + "\n\n" + 
+                             "מנוע Stockfish בעומק 16 המליץ על המהלך: **" + currentBestMove + "**. \n" +
+                             "תסביר לי ב-2-3 משפטים בעברית פשוטה מה הרעיון האסטרטגי או הטקטי מאחורי המהלך הזה ועל אילו איומים הוא עונה?";
+
+            // העתקה ללוח (Clipboard)
+            navigator.clipboard.writeText(promptText).then(function() {
+                alert('השאלה הועתקה ללוח שלך! פשוט תעשה "הדבק" בצ\'אט עם ה-AI כדי לקבל את ההסבר.');
+            }, function() {
+                alert('אוי, הייתה בעיה בהעתקה. הנה הטקסט:\n\n' + promptText);
+            });
+        });
 
         function onDragStart (source, piece, position, orientation) {
             if (game.game_over()) return false;
@@ -83,7 +243,7 @@
             if (move === null) return 'snapback';
 
             updateStatus();
-            askEngine(); // קורא למנוע אחרי כל מהלך תקין
+            askEngine();
         }
 
         function onSnapEnd () {
@@ -98,7 +258,7 @@
             else if (game.in_draw()) statusHTML = 'תיקו.';
             else {
                 statusHTML = 'תור: ' + moveColor;
-                if (game.in_check()) statusHTML += ', שח!';
+                if (game.in_check()) statusHTML += ', <span style="color:#ff5252;">שח!</span>';
             }
             $status.html(statusHTML);
         }
