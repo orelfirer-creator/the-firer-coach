@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>המאמן האישי שלי</title>
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+</head>
+<body style="font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; margin-top: 50px;">
+
+    <h2>"המאמן האישי שלי"</h2>
+    
+    <div id="myBoard" style="width: 400px;"></div>
+
+    <script>
+        // הגדרות הלוח
+        var config = {
+            position: 'start', // מתחיל ממצב התחלתי של משחק
+            draggable: true,   // מאפשר לגרור את הכלים
+            pieceTheme: 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chesspieces/wikipedia/{piece}.png' // מושך את התמונות של הכלים מהאינטרנט
+        };
+        
+        // יצירת הלוח על המסך
+        var board = Chessboard('myBoard', config);
+    </script>
+
+</body>
+</html>
