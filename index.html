@@ -23,37 +23,35 @@
 
         .main-wrapper {
             display: flex;
-            flex-direction: row; /* בטלפון זה יהפוך ל-column */
+            flex-direction: row;
             gap: 30px;
             align-items: start;
         }
 
-        /* עיצוב הלוח */
         .board-container {
             flex-shrink: 0;
         }
 
         #myBoard {
-            width: 500px; /* גדול יותר ומקצועי */
+            width: 500px;
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* עיצוב הפאנל הצדי */
         .info-panel {
-            width: 350px;
+            width: 380px;
             background-color: #1e1e1e;
             padding: 25px;
             border-radius: 8px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
         }
 
         .title {
-            margin: 0 0 10px 0;
+            margin: 0 0 5px 0;
             font-size: 24px;
             text-align: center;
             color: #ffffff;
@@ -61,7 +59,7 @@
             padding-bottom: 15px;
         }
 
-        .status-container, .engine-container {
+        .status-container, .engine-container, .explanation-container {
             padding: 15px;
             background-color: #2d2d2d;
             border-radius: 5px;
@@ -80,8 +78,8 @@
         }
 
         #best-move {
-            font-family: 'Roboto Mono', monospace; /* גופן קוד מקצועי */
-            color: #4CAF50; /* ירוק למהלך הכי טוב */
+            font-family: 'Roboto Mono', monospace;
+            color: #4CAF50;
             font-size: 20px;
             font-weight: bold;
         }
@@ -92,43 +90,67 @@
             margin-top: 5px;
         }
 
-        /* עיצוב כפתור ההסבר */
+        /* עיצוב כפתור ההסבר ותיבת הטקסט */
         #explain-btn {
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 15px;
+            padding: 12px;
             border-radius: 5px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
+            transition: 0.2s;
             text-align: center;
+            display: none;
+            width: 100%;
+        }
+
+        #explain-btn:hover { background-color: #45a049; }
+        #explain-btn:disabled { background-color: #555; cursor: not-allowed; }
+
+        #ai-explanation {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #fff;
+            white-space: pre-wrap;
+        }
+
+        /* אזור הגדרת המפתח */
+        .api-setup {
             margin-top: 10px;
-            display: none; /* מופיע רק כשיש המלצה */
+            padding: 15px;
+            background-color: #2a2000;
+            border: 1px dashed #ffc107;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .api-setup input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: none;
+            box-sizing: border-box;
+            font-family: monospace;
+        }
+        
+        .api-setup button {
+            background-color: #ffc107;
+            color: #000;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
         }
 
-        #explain-btn:hover {
-            background-color: #45a049;
-        }
-
-        #explain-btn:active {
-            transform: scale(0.98);
-        }
-
-        /* התאמה לטלפונים */
         @media (max-width: 900px) {
-            .main-wrapper {
-                flex-direction: column;
-                align-items: center;
-            }
-            #myBoard {
-                width: 90vw;
-            }
-            .info-panel {
-                width: 90vw;
-                box-sizing: border-box;
-            }
+            .main-wrapper { flex-direction: column; align-items: center; }
+            #myBoard { width: 90vw; }
+            .info-panel { width: 90vw; box-sizing: border-box; }
         }
     </style>
 
@@ -139,7 +161,6 @@
 <body>
 
     <div class="main-wrapper">
-        
         <div class="board-container">
             <div id="myBoard"></div>
         </div>
@@ -153,12 +174,21 @@
             </div>
             
             <div class="engine-container" id="engineStatus">
-                <span class="panel-label">ניתוח המנוע</span>
+                <span class="panel-label">ניתוח המנוע (עומק 16)</span>
                 <div id="best-move">אנא עשה מהלך</div>
-                <div id="depth-status">המנוע יחשוב לעומק 16</div>
             </div>
 
-            <button id="explain-btn">הסבר לי למה (העתק שאלה)</button>
+            <button id="explain-btn">הסבר לי את המהלך</button>
+            <div class="explanation-container" id="explanation-box" style="display:none;">
+                <span class="panel-label">הסבר טקטי ואסטרטגי (Gemini)</span>
+                <div id="ai-explanation"></div>
+            </div>
+
+            <div class="api-setup" id="api-setup-box">
+                <strong>הגדרת חיבור ל-AI:</strong> הדבק כאן את מפתח ה-API שלך. הוא נשמר רק בדפדפן שלך.
+                <input type="password" id="api-key-input" placeholder="AIzaSy...">
+                <button onclick="saveApiKey()">שמור מפתח</button>
+            </div>
         </div>
     </div>
 
@@ -167,10 +197,27 @@
         var game = new Chess();
         var $status = $('#status');
         var $bestMoveDisplay = $('#best-move');
-        var $depthStatus = $('#depth-status');
         var $explainBtn = $('#explain-btn');
+        var $explanationBox = $('#explanation-box');
+        var $aiExplanation = $('#ai-explanation');
         var engine = null;
-        var currentBestMove = null; // משתנה גלובלי לשמירת המהלך האחרון
+        var currentBestMove = null;
+
+        // בדיקה אם יש מפתח שמור והסתרת התיבה
+        $(document).ready(function() {
+            if (localStorage.getItem('gemini_api_key')) {
+                $('#api-setup-box').hide();
+            }
+        });
+
+        function saveApiKey() {
+            var key = $('#api-key-input').val().trim();
+            if (key) {
+                localStorage.setItem('gemini_api_key', key);
+                $('#api-setup-box').slideUp();
+                alert("המפתח נשמר בהצלחה בדפדפן שלך!");
+            }
+        }
 
         // טעינת מנוע סטוקפיש
         fetch('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.0/stockfish.js')
@@ -189,7 +236,7 @@
                     if (line.includes('bestmove')) {
                         currentBestMove = line.split(' ')[1];
                         $bestMoveDisplay.html(currentBestMove);
-                        $explainBtn.show(); // מציג את כפתור ההסבר
+                        $explainBtn.show(); 
                     }
                 };
                 
@@ -199,29 +246,61 @@
 
         function askEngine() {
             if (engine) {
-                $explainBtn.hide(); // מחביא את הכפתור בזמן שהמנוע חושב
-                $bestMoveDisplay.html('חושב...');
+                $explainBtn.hide(); 
+                $explanationBox.hide();
+                $bestMoveDisplay.html('מחשב...');
                 engine.postMessage('position fen ' + game.fen());
-                // מעלה את עומק החישוב ל-16
                 engine.postMessage('go depth 16');
             }
         }
 
-        // פונקציית כפתור ההסבר
+        // פונקציית כפתור ההסבר שמדברת עם ג'מיני
         $explainBtn.on('click', function() {
+            var apiKey = localStorage.getItem('gemini_api_key');
+            if (!apiKey) {
+                alert("אנא הכנס מפתח API בתיבה למטה ושמור אותו קודם.");
+                $('#api-setup-box').slideDown();
+                return;
+            }
+
             if (!currentBestMove) return;
 
-            var currentFEN = game.fen();
-            var promptText = "אני שחקן שחמט ברמה של 1440. המצב בלוח הוא בדיוק:\n" + 
-                             currentFEN + "\n\n" + 
-                             "מנוע Stockfish בעומק 16 המליץ על המהלך: **" + currentBestMove + "**. \n" +
+            // שינוי תצוגה לטעינה
+            $explainBtn.prop('disabled', true).text('מנתח עמדה...');
+            $explanationBox.slideDown();
+            $aiExplanation.html('<i>Gemini חושב על ההסבר...</i>');
+
+            var promptText = "אני שחקן שחמט ברמה של 1440. המצב בלוח הוא:\n" + 
+                             game.fen() + "\n" + 
+                             "מנוע Stockfish המליץ על המהלך: " + currentBestMove + ". " +
                              "תסביר לי ב-2-3 משפטים בעברית פשוטה מה הרעיון האסטרטגי או הטקטי מאחורי המהלך הזה ועל אילו איומים הוא עונה?";
 
-            // העתקה ללוח (Clipboard)
-            navigator.clipboard.writeText(promptText).then(function() {
-                alert('השאלה הועתקה ללוח שלך! פשוט תעשה "הדבק" בצ\'אט עם ה-AI כדי לקבל את ההסבר.');
-            }, function() {
-                alert('אוי, הייתה בעיה בהעתקה. הנה הטקסט:\n\n' + promptText);
+            var apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
+
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptText }] }]
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                $explainBtn.prop('disabled', false).text('הסבר לי את המהלך');
+                if (data.candidates && data.candidates.length > 0) {
+                    var text = data.candidates[0].content.parts[0].text;
+                    // החלפת ירידות שורה רגילות לתגיות HTML כדי שזה יראה טוב
+                    text = text.replace(/\n/g, '<br>');
+                    // החלפת כוכביות להדגשה
+                    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    $aiExplanation.html(text);
+                } else {
+                    $aiExplanation.html('<span style="color:red;">שגיאה בקבלת התשובה. ודא שהמפתח תקין.</span>');
+                }
+            })
+            .catch(error => {
+                $explainBtn.prop('disabled', false).text('הסבר לי את המהלך');
+                $aiExplanation.html('<span style="color:red;">שגיאת תקשורת: ' + error.message + '</span>');
             });
         });
 
