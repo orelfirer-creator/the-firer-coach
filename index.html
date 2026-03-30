@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>המאמן האישי שלי: The Firer Coach</title>
+    <title>The Firer Coach | Pro Edition</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     
     <style>
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: #121212;
-            color: #e0e0e0;
+            background-color: #0f1115;
+            color: #ececec;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,143 +24,117 @@
         .main-wrapper {
             display: flex;
             flex-direction: row;
-            gap: 30px;
+            gap: 40px;
             align-items: start;
         }
 
+        /* עיצוב הלוח המקצועי */
         .board-container {
             flex-shrink: 0;
+            background-color: #262522;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
         }
 
         #myBoard {
-            width: 500px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 550px;
         }
 
-        .info-panel {
-            width: 380px;
-            background-color: #1e1e1e;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        /* סימונים מיוחדים על הלוח */
+        .highlight-legal {
+            box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            transform: scale(0.4);
+        }
+        
+        .in-check {
+            box-shadow: inset 0 0 25px rgba(255, 0, 0, 0.8) !important;
+            background-color: rgba(255, 0, 0, 0.4) !important;
+        }
+
+        /* סרגל כלים מתחת ללוח */
+        .board-controls {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
-            position: relative;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
         }
 
-        .title {
-            margin: 0 0 5px 0;
-            font-size: 24px;
-            text-align: center;
-            color: #ffffff;
-            border-bottom: 2px solid #333;
-            padding-bottom: 15px;
-        }
-
-        .status-container, .engine-container, .explanation-container {
-            padding: 15px;
-            background-color: #2d2d2d;
-            border-radius: 5px;
-        }
-
-        .panel-label {
-            font-size: 14px;
-            color: #aaa;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        #status {
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        #best-move {
-            font-family: 'Roboto Mono', monospace;
-            color: #4CAF50;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        #depth-status {
-            font-size: 12px;
-            color: #888;
-            margin-top: 5px;
-        }
-
-        #explain-btn {
-            background-color: #4CAF50;
+        .control-btn {
+            background-color: #3b3936;
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 6px;
             cursor: pointer;
+            font-weight: 600;
             transition: 0.2s;
-            text-align: center;
-            display: none;
-            width: 100%;
+        }
+        .control-btn:hover { background-color: #4b4845; }
+
+        /* מתג מצב בוט */
+        .bot-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+        
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #4CAF50; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* פאנל מידע צדי */
+        .info-panel {
+            width: 400px;
+            background-color: #1e2024;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        #explain-btn:hover { background-color: #45a049; }
-        #explain-btn:disabled { background-color: #555; cursor: not-allowed; }
+        .title { margin: 0; font-size: 28px; font-weight: 700; color: #fff; text-align: left; direction: ltr; }
+        .subtitle { font-size: 14px; color: #888; margin-top: -5px; text-align: left; direction: ltr; margin-bottom: 10px; }
 
-        #ai-explanation {
-            font-size: 14px;
-            line-height: 1.5;
-            color: #fff;
-            white-space: pre-wrap;
-        }
-
-        .api-setup {
-            margin-top: 10px;
+        .panel-box {
+            background-color: #2a2d33;
             padding: 15px;
-            background-color: #2a2000;
-            border: 1px dashed #ffc107;
-            border-radius: 5px;
-            font-size: 12px;
-        }
-        
-        .api-setup input {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            border: none;
-            box-sizing: border-box;
-            font-family: monospace;
-        }
-        
-        .api-setup button {
-            background-color: #ffc107;
-            color: #000;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
         }
 
-        /* כפתור איפוס מפתח */
-        .reset-key-link {
-            text-align: center;
-            margin-top: 10px;
-        }
+        .panel-label { font-size: 13px; color: #a1a1a1; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block; }
         
-        .reset-key-link a {
-            color: #888;
-            font-size: 12px;
-            text-decoration: underline;
-            cursor: pointer;
-        }
-        .reset-key-link a:hover { color: #fff; }
+        #status { font-size: 18px; font-weight: 600; color: #fff; }
+        #best-move { font-family: 'Roboto Mono', monospace; color: #4CAF50; font-size: 24px; font-weight: bold; }
 
-        @media (max-width: 900px) {
+        #explain-btn {
+            background-color: #4CAF50; color: white; border: none; padding: 15px; border-radius: 8px;
+            font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3); display: none;
+        }
+        #explain-btn:hover { background-color: #45a049; transform: translateY(-2px); }
+        #explain-btn:disabled { background-color: #444; color: #888; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        .explanation-container { background-color: #222; padding: 15px; border-radius: 8px; font-size: 14px; line-height: 1.6; color: #ddd; border: 1px solid #333; }
+
+        .api-setup { margin-top: auto; padding: 15px; background-color: rgba(255, 193, 7, 0.1); border: 1px dashed #ffc107; border-radius: 8px; font-size: 13px; }
+        .api-setup input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #666; background: #111; color: #fff; font-family: monospace; box-sizing: border-box; }
+        .api-setup button { background-color: #ffc107; color: #000; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+
+        .reset-key-link { text-align: center; margin-top: 15px; }
+        .reset-key-link a { color: #666; font-size: 12px; cursor: pointer; text-decoration: none; }
+        .reset-key-link a:hover { color: #aaa; text-decoration: underline; }
+
+        @media (max-width: 1000px) {
             .main-wrapper { flex-direction: column; align-items: center; }
             #myBoard { width: 90vw; }
             .info-panel { width: 90vw; box-sizing: border-box; }
@@ -176,35 +150,51 @@
     <div class="main-wrapper">
         <div class="board-container">
             <div id="myBoard"></div>
+            
+            <div class="board-controls">
+                <button class="control-btn" onclick="undoMove()">🔙 החזר מהלך</button>
+                <div class="bot-toggle-wrapper">
+                    <span>שחק נגד בוט</span>
+                    <label class="switch">
+                        <input type="checkbox" id="bot-mode-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
         </div>
 
         <div class="info-panel">
-            <h1 class="title">The Firer Coach</h1>
-            
-            <div class="status-container">
-                <span class="panel-label">סטטוס משחק</span>
-                <div id="status">טוען...</div>
+            <div>
+                <h1 class="title">The Firer Coach</h1>
+                <div class="subtitle">Advanced Analysis Board</div>
             </div>
             
-            <div class="engine-container" id="engineStatus">
-                <span class="panel-label">ניתוח המנוע (עומק 16)</span>
-                <div id="best-move">אנא עשה מהלך</div>
+            <div class="panel-box">
+                <span class="panel-label">מצב נוכחי</span>
+                <div id="status">תור לבן להזיז</div>
+            </div>
+            
+            <div class="panel-box" id="engineStatus">
+                <span class="panel-label">סטוקפיש 10 (עומק 16)</span>
+                <div id="best-move">...</div>
             </div>
 
-            <button id="explain-btn">הסבר לי את המהלך</button>
+            <button id="explain-btn">הסבר לי את העמדה</button>
+            
             <div class="explanation-container" id="explanation-box" style="display:none;">
-                <span class="panel-label">הסבר טקטי ואסטרטגי (Gemini)</span>
+                <span class="panel-label">ניתוח אסטרטגי AI</span>
                 <div id="ai-explanation"></div>
             </div>
 
             <div class="api-setup" id="api-setup-box">
-                <strong>הגדרת חיבור ל-AI:</strong> הדבק כאן את מפתח ה-API שלך. הוא נשמר רק בדפדפן שלך.
+                <strong style="color: #ffc107;">חיבור מערכת ההסברים:</strong>
+                הזן מפתח API כדי לקבל הסברים טקטיים.
                 <input type="password" id="api-key-input" placeholder="AIzaSy...">
-                <button onclick="saveApiKey()">שמור מפתח</button>
+                <button onclick="saveApiKey()">הפעל מאמן חכם</button>
             </div>
 
             <div class="reset-key-link">
-                <a onclick="resetApiKey()">החלף מפתח API</a>
+                <a onclick="resetApiKey()">הגדרות API מפתח</a>
             </div>
         </div>
     </div>
@@ -215,15 +205,13 @@
         var $status = $('#status');
         var $bestMoveDisplay = $('#best-move');
         var $explainBtn = $('#explain-btn');
-        var $explanationBox = $('#explanation-box');
-        var $aiExplanation = $('#ai-explanation');
         var engine = null;
         var currentBestMove = null;
+        var squareClass = 'square-55d63'; // קלאס פנימי של הלוח
 
+        // אתחול המפתח
         $(document).ready(function() {
-            if (localStorage.getItem('gemini_api_key')) {
-                $('#api-setup-box').hide();
-            }
+            if (localStorage.getItem('gemini_api_key')) { $('#api-setup-box').hide(); }
         });
 
         function saveApiKey() {
@@ -231,136 +219,175 @@
             if (key) {
                 localStorage.setItem('gemini_api_key', key);
                 $('#api-setup-box').slideUp();
-                // מנקה את התראת השגיאה אם הייתה
-                $explanationBox.hide();
-                alert("המפתח נשמר בהצלחה בדפדפן שלך!");
+                alert("מערכת המאמן החכם הופעלה!");
             }
         }
 
-        // פונקציה חדשה לאיפוס המפתח
         function resetApiKey() {
             localStorage.removeItem('gemini_api_key');
-            $('#api-key-input').val(''); // מנקה את התיבה
+            $('#api-key-input').val('');
             $('#api-setup-box').slideDown();
         }
 
+        // אתחול מנוע
         fetch('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.0/stockfish.js')
-            .then(function(response) { return response.text(); })
-            .then(function(text) {
+            .then(response => response.text())
+            .then(text => {
                 var blob = new Blob([text], {type: 'application/javascript'});
                 engine = new Worker(URL.createObjectURL(blob));
                 
                 engine.onmessage = function(event) {
                     var line = event.data;
-                    
-                    if (line === 'readyok') {
-                        $bestMoveDisplay.html('המנוע מוכן!');
-                    }
-                    
                     if (line.includes('bestmove')) {
                         currentBestMove = line.split(' ')[1];
                         $bestMoveDisplay.html(currentBestMove);
                         $explainBtn.show(); 
+
+                        // אם מצב בוט דלוק, ותור שחור - הבוט משחק
+                        var isBotMode = $('#bot-mode-toggle').is(':checked');
+                        if (isBotMode && game.turn() === 'b' && currentBestMove) {
+                            setTimeout(function() {
+                                game.move(currentBestMove, {sloppy: true});
+                                board.position(game.fen());
+                                updateStatus();
+                                removeHighlights();
+                                highlightCheck();
+                                askEngine(); // המנוע יחשוב עכשיו מה טוב ללבן
+                            }, 400); // השהייה קטנה שירגיש טבעי
+                        }
                     }
                 };
-                
                 engine.postMessage('uci');
-                setTimeout(function() { engine.postMessage('isready'); }, 500);
+                setTimeout(() => engine.postMessage('isready'), 500);
             });
 
         function askEngine() {
-            if (engine) {
-                $explainBtn.hide(); 
-                $explanationBox.hide();
-                $bestMoveDisplay.html('מחשב...');
+            if (engine && !game.game_over()) {
+                $bestMoveDisplay.html('<span style="color:#888; font-size: 16px;">מחשב...</span>');
                 engine.postMessage('position fen ' + game.fen());
                 engine.postMessage('go depth 16');
             }
         }
 
-        $explainBtn.on('click', function() {
-            var apiKey = localStorage.getItem('gemini_api_key');
-            if (!apiKey) {
-                alert("אנא הכנס מפתח API בתיבה למטה ושמור אותו קודם.");
-                $('#api-setup-box').slideDown();
-                return;
+        // פונקציות עיצוב לוח (הדגשות)
+        function removeHighlights() {
+            $('#myBoard .square-55d63').removeClass('highlight-legal');
+            $('#myBoard .square-55d63').removeClass('in-check');
+        }
+
+        function highlightLegalMoves(square) {
+            var moves = game.moves({ square: square, verbose: true });
+            if (moves.length === 0) return;
+            for (var i = 0; i < moves.length; i++) {
+                $('#myBoard .square-' + moves[i].to).addClass('highlight-legal');
             }
+        }
 
-            if (!currentBestMove) return;
-
-            $explainBtn.prop('disabled', true).text('מנתח עמדה...');
-            $explanationBox.slideDown();
-            $aiExplanation.html('<i>Gemini חושב על ההסבר...</i>');
-
-            var promptText = "אני שחקן שחמט ברמה של 1440. המצב בלוח הוא:\n" + 
-                             game.fen() + "\n" + 
-                             "מנוע Stockfish המליץ על המהלך: " + currentBestMove + ". " +
-                             "תסביר לי ב-2-3 משפטים בעברית פשוטה מה הרעיון האסטרטגי או הטקטי מאחורי המהלך הזה ועל אילו איומים הוא עונה?";
-
-            var apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
-
-            fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: promptText }] }]
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                $explainBtn.prop('disabled', false).text('הסבר לי את המהלך');
-                if (data.candidates && data.candidates.length > 0) {
-                    var text = data.candidates[0].content.parts[0].text;
-                    text = text.replace(/\n/g, '<br>');
-                    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                    $aiExplanation.html(text);
-                } else {
-                    $aiExplanation.html('<span style="color:#ff5252;">שגיאה בקבלת התשובה. ודא שהמפתח תקין.</span>');
+        function highlightCheck() {
+            if (game.in_check()) {
+                // חיפוש המלך של מי שתורו עכשיו
+                var turn = game.turn();
+                var boardData = game.board();
+                for (var i = 0; i < 8; i++) {
+                    for (var j = 0; j < 8; j++) {
+                        if (boardData[i][j] && boardData[i][j].type === 'k' && boardData[i][j].color === turn) {
+                            var files = ['a','b','c','d','e','f','g','h'];
+                            var sq = files[j] + (8 - i);
+                            $('#myBoard .square-' + sq).addClass('in-check');
+                        }
+                    }
                 }
-            })
-            .catch(error => {
-                $explainBtn.prop('disabled', false).text('הסבר לי את המהלך');
-                $aiExplanation.html('<span style="color:#ff5252;">שגיאת תקשורת: ' + error.message + '</span>');
-            });
-        });
+            }
+        }
 
-        function onDragStart (source, piece, position, orientation) {
+        // אירועי לוח
+        function onDragStart (source, piece) {
             if (game.game_over()) return false;
+            // אם משחקים נגד בוט, אי אפשר להזיז את השחור
+            var isBotMode = $('#bot-mode-toggle').is(':checked');
+            if (isBotMode && piece.search(/^b/) !== -1) return false;
+            
             if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
                 (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
                 return false;
             }
+            highlightLegalMoves(source);
         }
 
         function onDrop (source, target) {
-            var move = game.move({
-                from: source,
-                to: target,
-                promotion: 'q'
-            });
-
-            if (move === null) return 'snapback';
-
+            removeHighlights();
+            var move = game.move({ from: source, to: target, promotion: 'q' });
+            if (move === null) {
+                highlightCheck();
+                return 'snapback';
+            }
             updateStatus();
+            highlightCheck();
             askEngine();
         }
 
-        function onSnapEnd () {
+        function onSnapEnd () { board.position(game.fen()); }
+
+        function undoMove() {
+            var isBotMode = $('#bot-mode-toggle').is(':checked');
+            game.undo();
+            if (isBotMode) { game.undo(); } // לוקח שני מהלכים אחורה אם זה נגד בוט
             board.position(game.fen());
+            updateStatus();
+            removeHighlights();
+            highlightCheck();
+            askEngine();
         }
 
         function updateStatus () {
-            var statusHTML = '';
             var moveColor = game.turn() === 'b' ? 'שחור' : 'לבן';
-
-            if (game.in_checkmate()) statusHTML = 'מט ל' + moveColor + '!';
-            else if (game.in_draw()) statusHTML = 'תיקו.';
+            var statusText = '';
+            if (game.in_checkmate()) statusText = 'שחמט! ה' + moveColor + ' הפסיד.';
+            else if (game.in_draw()) statusText = 'תיקו.';
             else {
-                statusHTML = 'תור: ' + moveColor;
-                if (game.in_check()) statusHTML += ', <span style="color:#ff5252;">שח!</span>';
+                statusText = 'תור: ' + moveColor;
+                if (game.in_check()) statusText += ' <span style="color:#ff4444; font-weight:bold;">(שח!)</span>';
             }
-            $status.html(statusHTML);
+            $status.html(statusText);
         }
+
+        // חיבור ל-Gemini
+        $explainBtn.on('click', function() {
+            var apiKey = localStorage.getItem('gemini_api_key');
+            if (!apiKey) {
+                $('#api-setup-box').slideDown();
+                alert("חובה להגדיר מפתח API לפני קבלת הסבר.");
+                return;
+            }
+            if (!currentBestMove) return;
+
+            $explainBtn.prop('disabled', true).text('מנתח עמדה...');
+            $('#explanation-box').slideDown();
+            $('#ai-explanation').html('<div style="text-align:center;"><img src="https://i.gifer.com/ZZ5H.gif" width="20"> <br>מנתח את העמדה...</div>');
+
+            var promptText = "אני שחקן שחמט ברמה של 1440. המצב בלוח הוא:\n" + game.fen() + 
+                             "\nסטוקפיש ממליץ על: " + currentBestMove + ". " +
+                             "תסביר לי ב-2-3 משפטים בעברית פשוטה מה הרעיון האסטרטגי מאחורי המהלך.";
+
+            fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+            })
+            .then(res => res.json())
+            .then(data => {
+                $explainBtn.prop('disabled', false).text('הסבר שוב');
+                if (data.candidates) {
+                    var text = data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    $('#ai-explanation').html(text);
+                } else {
+                    $('#ai-explanation').html('<span style="color:#ff4444;">שגיאת אימות. בדוק שהמפתח עדכני.</span>');
+                }
+            }).catch(e => {
+                $explainBtn.prop('disabled', false).text('הסבר שוב');
+                $('#ai-explanation').html('<span style="color:#ff4444;">שגיאה: ' + e.message + '</span>');
+            });
+        });
 
         var config = {
             draggable: true,
@@ -370,10 +397,9 @@
             onSnapEnd: onSnapEnd,
             pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
         };
-        
         board = Chessboard('myBoard', config);
         updateStatus();
+        askEngine(); // אתחול מנוע בעמדת הפתיחה
     </script>
-
 </body>
 </html>
